@@ -1,0 +1,30 @@
+/**
+ *excerpt length reset
+ */
+
+function utf8_trim($str) {
+	$len = strlen($str);
+	$hex='';
+	for ($i=strlen($str)-1; $i>=0; $i-=1){
+		$hex .= ' '.ord($str[$i]);
+		$ch = ord($str[$i]);
+        if (($ch & 128)==0) return(substr($str,0,$i));
+		if (($ch & 192)==192) return(substr($str,0,$i));
+	}
+	return($str.$hex);
+}
+// 中文截断
+function mul_excerpt ($excerpt) {
+	$myexcerpt = substr($excerpt,0,400);
+	return utf8_trim($myexcerpt);
+}
+add_filter('the_excerpt', 'mul_excerpt');
+
+
+
+// control excerpt length
+
+function custom_excerpt_length( $length ) {
+    return 180;
+}
+add_filter( 'excerpt_length', 'custom_excerpt_length', 999 );

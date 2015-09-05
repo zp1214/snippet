@@ -10,7 +10,6 @@
 	<?php wp_head(); ?>
 </head>
 
-
 <body <?php body_class(); ?>>
 	<?php if ( get_header_image() ) : ?>
 	<div id="header-image">
@@ -21,112 +20,97 @@
 	<div id="wrap">
 		<header id="site-header">
 			<div id="site-branding">
-				<?php if ( is_front_page() && is_home() ) : ?>
-				<h1 id="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></h1>
+				<?php if ( !is_singular() ) : ?>
+					<h1 id="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></h1>
 				<?php else : ?>
-				<p id="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></p>
-				<?php endif;
-					$description = get_bloginfo( 'description', 'display' );
-					if ( $description || is_customize_preview() ) : ?>
-						<p id="site-description"><?php echo $description; ?></p>
-					<?php endif;
-				?>
+					<p id="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></p>
+				<?php endif;?>
+				<?php if ( get_bloginfo( 'description', 'display' ) || is_customize_preview() ) : ?>
+						<p id="site-description"><?php echo get_bloginfo( 'description', 'display' ); ?></p>
+				<?php endif;?>
 			</div><!-- #site-branding -->
 			<?php if ( has_nav_menu( 'primary' ) ) : ?>
-			<nav id="site-navigation" role="navigation">
-				<?php
-					// Primary navigation menu.
-					wp_nav_menu( array(
-						'menu_class'     => 'nav-menu',
-						'theme_location' => 'primary',
-					) );
-				?>
-			</nav><!-- #site-navigation -->
+				<nav id="site-navigation" role="navigation">
+					<?php wp_nav_menu( array( 'theme_location' => 'primary' ) ); ?>
+				</nav><!-- #site-navigation -->
 			<?php endif; ?>
 		</header><!-- #site-header -->
 		<div id="main">
 			<div id="content">
-				<section class="post">
-					<header class="entry-header"><h2>section-h1</h2></header>
-					<div class="entry-content">post content</div>
-					<footer class="entry-footer">post footer</footer>
-				</section><!-- .post -->
-				<nav id="page-navigation">page-navigation</nav><!-- #page-navigation -->
-
-<!-- section finished -->
-
-
+			  <?php
+					if ( have_posts() ) :
+        			// Start the Loop.
+						while ( have_posts() ) : the_post();
+				?>
 				<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 					<header class="entry-header">
-					<?php
-						if ( is_single() ) :
-							the_title( '<h1 class="entry-title">', '</h1>' );
-						else :
-							the_title( '<h2 class="entry-title"><a href="' . esc_url( get_permalink() ) . '" rel="bookmark">', '</a></h2>' );
-						endif;
-					?>
+						<?php
+							if ( is_singular() ) :
+								the_title( '<h1 class="entry-title">', '</h1>' );
+							else :
+								the_title( '<h2 class="entry-title"><a href="' . esc_url( get_permalink() ) . '" rel="bookmark">', '</a></h2>' );
+							endif;
+						?>
 					</header>
-					<div id="entry-content">
-						<?php oxtheme_post_thumbnail();?>
-						<?php
-							/* translators: %s: Name of current post */
-							the_content( sprintf(
-								__( 'Continue reading %s', 'twentyfifteen' ),
-								the_title( '<span class="screen-reader-text">', '</span>', false )
-								) );
-							wp_link_pages( array(
-								'before'      => '<div class="page-links"><span class="page-links-title">' . __( 'Pages:', 'twentyfifteen' ) . '</span>',
-								'after'       => '</div>',
-								'link_before' => '<span>',
-								'link_after'  => '</span>',
-								'pagelink'    => '<span class="screen-reader-text">' . __( 'Page', 'twentyfifteen' ) . ' </span>%',
-								'separator'   => '<span class="screen-reader-text">, </span>',
-								) );
+					<div class="entry-content">
+					
+					<?php 
+						if ( !post_password_required() &&  !is_singular() && has_post_thumbnail() ) {
+							echo '<div class="post-thumbnail">'.the_post_thumbnail().'</div>';
+						}
+						the_content( __( 'Continue reading', 'oxtheme' ) );
+						wp_link_pages( array(
+							'before'      => '<nav class="page-links" role="navigation"><span class="page-links-title">' . __( 'Pages:', 'oxtheme' ) . '</span>',
+							'after'       => '</div>',
+							'link_before' => '<span>',
+							'link_after'  => '</span>',
+							) );
 						?>
-						<?php
-							oxtheme_post_thumbnail();
-							the_content( __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'oxtheme' ) );
-							wp_link_pages( array(
-								'before'      => '<div class="page-links"><span class="page-links-title">' . __( 'Pages:', 'oxtheme' ) . '</span>',
-								'link_after'  => '</span>',
-								) );
-						?>
-
-
-
 
 					</div>
-					<footer id="entry-footer">
+					<footer class="entry-footer">
 						<?php
 							// Author bio.
-							if ( is_single() && get_the_author_meta( 'description' ) ) :
-							get_template_part( 'author-bio' );
+							if ( get_the_author_meta( 'description' ) ) :
+								get_template_part( 'author-bio' );
 							endif;
 						?>
 					</footer>
-					<nav id="post-navigation"><?php oxtheme_post_nav();?></nav>
-				</article>
-				<!-- #post -->
-				<div id="comment">comment</div>
-<!-- single finished -->
+				</article><!-- .post -->
+				<?php
+						endwhile; 
+							if ( paginate_links() ) :						
+				?>
+								<nav id="page-navigation" role="navigation"><?php echo paginate_links(); ?></nav>
+								<!-- #page-navigation -->
+				<?php 
+							endif;
+					else : 
+  						get_template_part( 'content', 'none' );
+					endif; 
+				?>
+				
 
-			</div>
+				<div id="comment">comment</div>
+				<!-- #comment -->
+
+			</div><!-- #content -->
 			<div id="sidebar">
-<!-- 侧边栏的判断逻辑需要确认 -->
-				<?php if ( ! is_active_sidebar( 'sidebar-1' ) ) : ?>
+<!-- Sidebar need confirm -->
+				<?php if ( ! dynamic_sidebar( 'sidebar-1' ) ) : ?>
 				<aside class="widget">
 					<h2 class="widget-title"><?php _e('Archives', 'oxtheme'); ?></h2>
 					<div class="widget-content"><?php wp_get_archives( array( 'type' => 'monthly' ) ); ?></div>
 				</aside>
         		<?php endif; ?>
-			</div>
-		</div>
+			</div><!-- #sidebar -->
+		</div><!-- #main -->
 		<footer id="footer">
 			<?php _e('Copyright &copy; ', 'oxtheme');?><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' );?></a>
-			<?php _e( 'Proudly powered by ', 'oxtheme' ); ?><a href="<?php echo esc_url( __( 'https://wordpress.org/', 'oxtheme' ) ); ?>); ?>"><?php _e('WordPress', 'oxtheme');?></a>
-			<?php _e( 'Theme ', 'oxtheme' ); ?><a href="<?php echo esc_url( __( 'http://www.oxtheme.com/', 'oxtheme' ) ); ?>" target="_blank">OXbox</a>
+			<?php _e( 'Proudly powered by ', 'oxtheme' ); ?><a href="<?php echo esc_url( __( 'https://wordpress.org/', 'oxtheme' ) ); ?>"><?php _e('WordPress', 'oxtheme');?></a>
+			<?php _e( 'Theme by ', 'oxtheme' ); ?><a href="<?php echo esc_url( __( 'http://www.oxtheme.com/', 'oxtheme' ) ); ?>" target="_blank"><?php _e('OX Theme', 'oxtheme');?></a>
 		</footer>
 	</div><!-- #wrap -->
-	
+	<?php wp_footer(); ?>
 </body>
 </html>
